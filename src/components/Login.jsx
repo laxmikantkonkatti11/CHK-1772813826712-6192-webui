@@ -25,31 +25,29 @@ const Login = () => {
             // This prevents 401 errors on the first request after login
             api.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
 
-            // Decode token to get role and redirect accordingly
-            const base64Url = access_token.split('.')[1];
-            const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-            const jsonPayload = decodeURIComponent(
-                atob(base64)
-                    .split('')
-                    .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-                    .join('')
-            );
-            const decoded = JSON.parse(jsonPayload);
-            const userRole = decoded.role || 'user';
+            // Get user information including role from the backend
+            try {
+                const userResponse = await api.get('/auth/me');
+                const userRole = userResponse.data.role || 'user';
 
-            // Small delay to ensure localStorage and axios headers are fully set
-            await new Promise(resolve => setTimeout(resolve, 100));
+                // Small delay to ensure localStorage and axios headers are fully set
+                await new Promise(resolve => setTimeout(resolve, 100));
 
-            // Redirect based on role
-            switch (userRole) {
-                case 'admin':
-                    navigate('/admin');
-                    break;
-                case 'department':
-                    navigate('/department');
-                    break;
-                default:
-                    navigate('/dashboard');
+                // Redirect based on role
+                switch (userRole) {
+                    case 'admin':
+                        navigate('/admin');
+                        break;
+                    case 'department':
+                        navigate('/department');
+                        break;
+                    default:
+                        navigate('/dashboard');
+                }
+            } catch (userError) {
+                console.error('Error getting user info:', userError);
+                // Fallback to dashboard if we can't get user info
+                navigate('/dashboard');
             }
         } catch (err) {
             console.error(err);

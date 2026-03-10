@@ -40,9 +40,7 @@ const Dashboard = () => {
                     <button onClick={() => setActiveTab('overview')} className={`w-full text-left py-2 px-4 rounded-lg transition-colors ${activeTab === 'overview' ? 'bg-indigo-800' : 'hover:bg-indigo-800'}`}>
                         Overview
                     </button>
-                    <button onClick={() => setActiveTab('report')} className={`w-full text-left py-2 px-4 rounded-lg transition-colors ${activeTab === 'report' ? 'bg-indigo-800' : 'hover:bg-indigo-800'}`}>
-                        Report Issue
-                    </button>
+                    
                     <button onClick={() => setActiveTab('complaints')} className={`w-full text-left py-2 px-4 rounded-lg transition-colors ${activeTab === 'complaints' ? 'bg-indigo-800' : 'hover:bg-indigo-800'}`}>
                         My Complaints
                     </button>

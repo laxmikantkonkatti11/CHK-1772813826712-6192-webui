@@ -5,23 +5,50 @@ import Register from './components/Register';
 import Dashboard from './components/Dashboard';
 import AdminDashboard from './components/AdminDashboard';
 import DepartmentDashboard from './components/DepartmentDashboard';
-import { getUserRole, isAuthenticated } from './utils/auth';
+import { getUserRole } from './utils/auth';
 
 // Protected Route Component with role checking
 const ProtectedRoute = ({ children, allowedRoles = [] }) => {
-  const token = localStorage.getItem('access_token');
+  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [userRole, setUserRole] = useState(null);
 
-  if (!token || !isAuthenticated()) {
+  useEffect(() => {
+    const checkAuth = async () => {
+      const token = localStorage.getItem('access_token');
+      if (!token) {
+        setIsAuthenticated(false);
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        const role = await getUserRole();
+        setUserRole(role);
+        setIsAuthenticated(true);
+      } catch (error) {
+        console.error('Auth check failed:', error);
+        setIsAuthenticated(false);
+      }
+      setIsLoading(false);
+    };
+
+    checkAuth();
+  }, []);
+
+  if (isLoading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading...</div>;
+  }
+
+  if (!isAuthenticated) {
     return <Navigate to="/login" replace />;
   }
 
   // If specific roles are required, check them
-  if (allowedRoles.length > 0) {
-    const userRole = getUserRole();
-    if (!allowedRoles.includes(userRole)) {
-      // Redirect to appropriate dashboard if wrong role
-      return <Navigate to={`/${userRole === 'admin' ? 'admin' : userRole === 'department' ? 'department' : 'dashboard'}`} replace />;
-    }
+  if (allowedRoles.length > 0 && !allowedRoles.includes(userRole)) {
+    // Redirect to appropriate dashboard if wrong role
+    const redirectPath = userRole === 'admin' ? '/admin' : userRole === 'department' ? '/department' : '/dashboard';
+    return <Navigate to={redirectPath} replace />;
   }
 
   return children;
@@ -29,7 +56,16 @@ const ProtectedRoute = ({ children, allowedRoles = [] }) => {
 
 // Auto-redirect to appropriate dashboard
 const AutoRedirect = () => {
-  const role = getUserRole();
+  const [role, setRole] = useState('user');
+
+  useEffect(() => {
+    const fetchRole = async () => {
+      const userRole = await getUserRole();
+      setRole(userRole || 'user');
+    };
+    fetchRole();
+  }, []);
+
   switch (role) {
     case 'admin':
       return <Navigate to="/admin" replace />;
@@ -80,7 +116,7 @@ function App() {
 
           {/* Root path - redirect based on role */}
           <Route path="/" element={
-            isAuthenticated() ? <AutoRedirect /> : <Navigate to="/login" replace />
+            localStorage.getItem('access_token') ? <AutoRedirect /> : <Navigate to="/login" replace />
           } />
         </Routes>
       </div>

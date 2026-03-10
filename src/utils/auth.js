@@ -20,31 +20,58 @@ export const decodeToken = (token) => {
     }
 };
 
-// Get current user role from token
-export const getUserRole = () => {
-    const token = localStorage.getItem('access_token');
-    if (!token) return null;
-
-    const decoded = decodeToken(token);
-    return decoded?.role || 'user';
+// Get current user role from API
+export const getUserRole = async () => {
+    try {
+        const response = await fetch('http://localhost:8000/auth/me', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            }
+        });
+        if (response.ok) {
+            const userData = await response.json();
+            return userData.role || 'user';
+        }
+    } catch (error) {
+        console.error('Error getting user role:', error);
+    }
+    return 'user'; // fallback
 };
 
 // Get user department (for department users)
-export const getUserDepartment = () => {
-    const token = localStorage.getItem('access_token');
-    if (!token) return null;
-
-    const decoded = decodeToken(token);
-    return decoded?.department || null;
+export const getUserDepartment = async () => {
+    try {
+        const response = await fetch('http://localhost:8000/auth/me', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            }
+        });
+        if (response.ok) {
+            const userData = await response.json();
+            return userData.department || null;
+        }
+    } catch (error) {
+        console.error('Error getting user department:', error);
+    }
+    return null;
 };
 
 // Get user email
-export const getUserEmail = () => {
-    const token = localStorage.getItem('access_token');
-    if (!token) return null;
-
-    const decoded = decodeToken(token);
-    return decoded?.email || null;
+export const getUserEmail = async () => {
+    try {
+        const response = await fetch('http://localhost:8000/auth/me', {
+            headers: {
+                'Authorization': `Bearer ${localStorage.getItem('access_token')}`
+            }
+        });
+        if (response.ok) {
+            const userData = await response.json();
+            return userData.email || null;
+        }
+    } catch (error) {
+        console.error('Error getting user email:', error);
+    }
+    return null;
 };
 
 // Get user UID
